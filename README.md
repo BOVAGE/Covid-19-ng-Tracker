@@ -5,6 +5,7 @@ Covid-19 is a Gui app created using tkinter, python. It displays the covid info 
 https://covidnigeria.herokuapp.com/api
 
 ## Modules used
-json<br>
-requests<br>
-pprint<br>
+- json
+- requests
+- pprint
+- threading
