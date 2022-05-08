@@ -1,11 +1,14 @@
 import requests, json, pprint
 import tkinter as tk
 from tkinter import ttk
+import threading
 
 apiUrl = "https://covidnigeria.herokuapp.com/api"
-def sendRequest(url: str) -> dict:
+def sendRequest(url: str, result=[]) -> dict:
     response = requests.get(apiUrl).text
     data = json.loads(response)
+    # use to output result from thread
+    result.append(data)
     return data
 statesInNg = ["Abia", "Adamawa", "AkwaIbom",  "Anambra",  "Bauchi", "Bayelsa",
   "Benue","Borno","Cross River","Delta","Ebonyi","Edo",
@@ -15,10 +18,14 @@ statesInNg = ["Abia", "Adamawa", "AkwaIbom",  "Anambra",  "Bauchi", "Bayelsa",
   "Plateau",  "Rivers",  "Sokoto",  "Taraba",  "Yobe",  "Zamfara"
 ]
 
-def displayData(*event):
+def displayData():
     """ displays the covid 19 data to resultText"""
+    response = []
     try:
-        data = sendRequest(apiUrl)
+        t1 = threading.Thread(target=sendRequest, args=(apiUrl,response))
+        t1.start()
+        t1.join()
+        data = response[0]
     except requests.ConnectionError:
         result.set("Check your internet connection!")
     else:
@@ -37,6 +44,10 @@ def displayData(*event):
                 print(state["casesOnAdmission"])
                 print(state["death"])
                 print(state["discharged"])
+
+def thread_handler(*event):
+    t2 = threading.Thread(target=displayData)
+    t2.start()
 
 root = tk.Tk()
 root.title("Nigeria Covid 19")
@@ -57,9 +68,9 @@ statesOption["values"] = statesInNg
 statesOption.place(relwidth = 0.6, relheight = 1.0)
 
 resultBtn = tk.Button(topFrame, text = "Get Data", bg = "green",
-                      relief = "raised", command = displayData)
+                      relief = "raised", command = thread_handler)
 resultBtn.place(relwidth = 0.3, relheight = 1.0, relx = 0.65)
-root.bind("<Return>", displayData)
+root.bind("<Return>", thread_handler)
 
 result = tk.StringVar()
 resultText = tk.Label(bottomFrame, textvariable = result, font = ("Helvetica", 16))
